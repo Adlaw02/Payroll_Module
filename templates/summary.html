@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Summary</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 80%;
+            max-width: 1200px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1, h2, h3 {
+            color: #333;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+            color: black;
+            position: relative;
+            z-index: 1;
+        }
+        .red-bold {
+            color: red;
+            font-weight: bold;
+        }
+        .green-bold {
+            color: green;
+            font-weight: bold;
+        }
+        a.button {
+            display: inline-block;
+            height: 40px;
+            max-width: 600px;
+            padding: 10px 20px;
+            font-size: 20px;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+            margin-bottom: 10px;
+        }
+        a.button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="{{ url_for('manager') }}" class="button button-logout">Manager</a>
+        <h1>Summary</h1>
+        <h2>Weekly Summary</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Staff Name</th>
+                    <th>Midweek Hours</th>
+                    <th>Weekend Hours</th>
+                    <th>Public Holiday Hours</th>
+                    <th>Deliveries</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for name, data in summary_data.items() %}
+                <tr>
+                    <td>{{ name }}</td>
+                    <td>{{ data.midweek }}</td>
+                    <td>{{ data.weekend }}</td>
+                    <td>{{ data.public_holiday }}</td>
+                    <td>{{ data.deliveries }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Daily Logs</h2>
+        {% for day, records in sorted_logging_data.items() %}
+            <h3>{{ day }}</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Staff Name</th>
+                        <th>Actual Clock In</th>
+                        <th>Rounded Clock In</th>
+                        <th>Actual Clock Out</th>
+                        <th>Rounded Clock Out</th>
+                        <th>Deliveries</th>
+                        <th>Hours Worked</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in records %}
+                    <tr>
+                        <td>{{ record.name }}</td>
+                        <td>{{ record.clock_in[11:] }}</td>
+                        <td>{{ record.corrected_clock_in[11:] }}</td>
+                        <td>{{ record.clock_out[11:] if record.clock_out else '' }}</td>
+                        <td>{{ record.corrected_clock_out[11:] if record.corrected_clock_out else '' }}</td>
+                        <td>{{ record.deliveries }}</td>
+                        <td>
+                            {% if record.corrected_clock_out %}
+                                {{ (strptime(record.corrected_clock_out, '%Y-%m-%d %H:%M') - strptime(record.corrected_clock_in, '%Y-%m-%d %H:%M')).total_seconds() / 3600 | round(2) }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    <tr>
+                        <td colspan="6" style="text-align:right;"><strong>Total Hours:</strong></td>
+                        <td><strong>{{ total_daily_hours[day] | round(2) }}</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        {% endfor %}
+    </div>
+</body>
+</html>
+
+
+
+

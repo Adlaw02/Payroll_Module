@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Manager Page</title>
+    <style>
+        .container {
+            max-width: 1000px;
+            margin: auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .button {
+            display: inline-block;
+            padding: 20px;
+            font-size: 24px;
+            color: white;
+            background-color: #007bff;
+            border: none;
+            border-radius: 10px;
+            text-decoration: none;
+            cursor: pointer;
+            width: 200px;
+            height: 200px;
+            text-align: center;
+            transition: background-color 0.3s, transform 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+        }
+        .button.logout {
+            background-color: #dc3545;
+        }
+        .button.logout:hover {
+            background-color: #c82333;
+        }
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            justify-items: center;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 10px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .staff-logged-in {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .staff-name {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .subheading {
+            font-size: 20px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Manager Page</h1>
+    <div class="subheading">Staff Logged In</div>
+    <div class="staff-logged-in">
+        {% for name in staff_clocked_in %}
+        <div class="staff-name">{{ name }}</div>
+        {% endfor %}
+    </div>
+    <div class="button-grid">
+        <button class="button" onclick="window.location.href='{{ url_for('summary') }}'">Summary</button>
+        <button class="button" onclick="window.location.href='{{ url_for('manager_override') }}'">Manager Override</button>
+        <button class="button logout" onclick="window.location.href='{{ url_for('logout') }}'">Log Out</button>
+        <button class="button" onclick="openModal('addStaffModal')">Add Staff</button>
+        <button class="button" onclick="openModal('removeStaffModal')">Remove Staff</button>
+        <button class="button" onclick="window.location.href='{{ url_for('list_pdfs') }}'">PDF Back Ups</button>
+        <button class="button" onclick="openModal('updateLocationModal')">Update Location</button>
+        <button class="button" onclick="openModal('updateManagerPinModal')">Update Manager Pin</button>
+        <button class="button" onclick="openModal('manageBackupModal')">Manage Backup Schedule</button>
+        <button class="button" onclick="openModal('updateSecurityQuestionsModal')">Update Security Questions</button>
+    </div>
+</div>
+
+<!-- Add Staff Modal -->
+<div id="addStaffModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('addStaffModal')">&times;</span>
+        <h2>Add Staff</h2>
+        <form method="POST" action="{{ url_for('add_staff') }}" autocomplete="off">
+            <label for="new_staff_name">Staff Name:</label>
+            <input type="text" id="new_staff_name" name="new_staff_name" required>
+            <label for="new_staff_pin">Staff PIN:</label>
+            <input type="text" id="new_staff_pin" name="new_staff_pin" required>
+            <button type="submit" class="button">Add Staff</button>
+        </form>
+    </div>
+</div>
+
+<!-- Remove Staff Modal -->
+<div id="removeStaffModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('removeStaffModal')">&times;</span>
+        <h2>Remove Staff</h2>
+        <form method="POST" action="{{ url_for('remove_staff') }}">
+            <label for="remove_name">Staff Name:</label>
+            <select id="remove_name" name="remove_name" required>
+                {% for name in staff %}
+                    {% if name != 'manager' %}
+                        <option value="{{ name }}">{{ name }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+            <button type="submit" class="button">Remove Staff</button>
+        </form>
+    </div>
+</div>
+
+<!-- Update Manager Pin Modal -->
+<div id="updateManagerPinModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('updateManagerPinModal')">&times;</span>
+        <h2>Update Manager Pin</h2>
+        <form method="POST" action="{{ url_for('update_manager_pin') }}">
+            <label for="new_pin">New Pin:</label>
+            <input type="password" id="new_pin" name="new_pin" required>
+            <button type="submit" class="button">Update Pin</button>
+        </form>
+    </div>
+</div>
+
+<!-- Update Security Questions Modal -->
+<div id="updateSecurityQuestionsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('updateSecurityQuestionsModal')">&times;</span>
+        <h2>Update Security Questions</h2>
+        <form method="POST" action="{{ url_for('update_security_questions') }}">
+            <label for="favourite_colour">Favourite Colour:</label>
+            <input type="text" id="favourite_colour" name="favourite_colour" required>
+            <label for="birth_place">Birth Place:</label>
+            <input type="text" id="birth_place" name="birth_place" required>
+            <label for="mother_maiden_name">Mother's Maiden Name:</label>
+            <input type="text" id="mother_maiden_name" name="mother_maiden_name" required>
+            <button type="submit" class="button">Update Security Questions</button>
+        </form>
+    </div>
+</div>
+
+<!-- Update Location Modal -->
+<div id="updateLocationModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('updateLocationModal')">&times;</span>
+        <h2>Update Location</h2>
+        <form method="POST" action="{{ url_for('update_location') }}">
+            <label for="state">State:</label>
+            <select id="state" name="state"```html
+                <option value="NSW" {% if state == 'NSW' %}selected{% endif %}>New South Wales</option>
+                <option value="VIC" {% if state == 'VIC' %}selected{% endif %}>Victoria</option>
+                <option value="QLD" {% if state == 'QLD' %}selected{% endif %}>Queensland</option>
+                <option value="WA" {% if state == 'WA' %}selected{% endif %}>Western Australia</option>
+                <option value="SA" {% if state == 'SA' %}selected{% endif %}>South Australia</option>
+                <option value="TAS" {% if state == 'TAS' %}selected{% endif %}>Tasmania</option>
+                <option value="ACT" {% if state == 'ACT' %}selected{% endif %}>Australian Capital Territory</option>
+                <option value="NT" {% if state == 'NT' %}selected{% endif %}>Northern Territory</option>
+            </select>
+            <button type="submit" class="button">Update Location</button>
+        </form>
+    </div>
+</div>
+
+<!-- Manage Backup Schedule Modal -->
+<div id="manageBackupModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal('manageBackupModal')">&times;</span>
+        <h2>Manage Backup Schedule</h2>
+        <p>Current Backup Schedule: {{ current_backup_schedule }}</p>
+        <form method="POST" action="{{ url_for('manage_backup') }}">
+            <label for="day_of_week">Day of the Week:</label>
+            <select name="day_of_week" id="day_of_week" required>
+                <option value="mon">Monday</option>
+                <option value="tue">Tuesday</option>
+                <option value="wed">Wednesday</option>
+                <option value="thu">Thursday</option>
+                <option value="fri">Friday</option>
+                <option value="sat">Saturday</option>
+                <option value="sun">Sunday</option>
+            </select>
+            <br>
+            <label for="backup_time">Time:</label>
+            <input type="time" name="backup_time" id="backup_time" required>
+            <br>
+            <button type="submit" class="button">Set Backup Schedule</button>
+        </form>
+    </div>
+</div>
+
+
+
+<script>
+    function openModal(modalId) {
+        document.getElementById(modalId).style.display = 'block';
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        const modals = document.getElementsByClassName('modal');
+        for (let modal of modals) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    }
+</script>
+</body>
+</html>

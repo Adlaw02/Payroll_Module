@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            text-align: center;
+        }
+        .button {
+            width: 48%;
+            padding: 20px;
+            margin: 10px 1%;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .button-green {
+            background-color: #28a745;
+            color: white;
+        }
+        .button-green:hover {
+            background-color: #218838;
+            transform: scale(1.05);
+        }
+        .button-red {
+            background-color: #dc3545;
+            color: white;
+        }
+        .button-red:hover {
+            background-color: #c82333;
+            transform: scale(1.05);
+        }
+        .staff-logged-in {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .staff-name {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 10px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .keypad {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .keypad button {
+            font-size: 24px;
+            padding: 20px;
+            cursor: pointer;
+            background-color: #000;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .keypad button:hover {
+            background-color: #333;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Staff Login</h1>
+        <form method="POST" action="{{ url_for('login') }}">
+            <input type="hidden" name="action" id="formAction">
+            <div style="display: flex; justify-content: space-between;">
+                <button type="button" onclick="submitForm('clock_in')" class="button button-green">Clock In</button>
+                <button type="button" onclick="openModal()" class="button button-red">Clock Out</button>
+            </div>
+        </form>
+        <div class="staff-logged-in">
+            {% for name in staff_clocked_in %}
+            <div class="staff-name">{{ name }}</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Delivery Modal -->
+    <div id="deliveryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Enter Deliveries</h2>
+            <form method="POST" action="{{ url_for('login') }}">
+                <input type="hidden" name="action" value="clock_out">
+                <label for="deliveries">Deliveries:</label>
+                <input type="number" id="deliveries" name="deliveries" min="0">
+                <button type="submit" class="button button-green">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function submitForm(action) {
+            document.getElementById('formAction').value = action;
+            document.forms[0].submit();
+        }
+
+        function openModal() {
+            document.getElementById('deliveryModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('deliveryModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('deliveryModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
+
+
